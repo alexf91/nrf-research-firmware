@@ -244,6 +244,14 @@ void handle_radio_request(uint8_t request, uint8_t * data)
     return;
   }
 
+  // Leave continuous tone test mode
+  else if(request == LEAVE_TONE_TEST_MODE)
+  {
+    configure_phy(0, 0, 0);
+    in1bc = 1;
+    return;
+  }
+
   // Receive a packet
   else if(request == RECEIVE_PACKET)
   {

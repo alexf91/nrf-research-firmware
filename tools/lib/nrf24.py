@@ -45,6 +45,7 @@ ENABLE_LNA_PA                  = 0x0B
 TRANSMIT_PAYLOAD_GENERIC       = 0x0C
 ENTER_PROMISCUOUS_MODE_GENERIC = 0x0D
 RECEIVE_PAYLOAD                = 0x12
+LEAVE_TONE_TEST_MODE           = 0x57
 
 # nRF24LU1+ registers
 RF_CH = 0x05
@@ -102,6 +103,11 @@ class nrf24:
     self.send_usb_command(ENTER_TONE_TEST_MODE, [])
     self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)
     logging.debug('Entered continuous tone test mode')
+
+  def leave_tone_test_mode(self):
+    self.send_usb_command(LEAVE_TONE_TEST_MODE, [])
+    self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)
+    logging.debug('Left continuous tone test mode')
 
   # Receive a payload if one is available
   def receive_payload(self):

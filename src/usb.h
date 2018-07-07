@@ -78,3 +78,4 @@ enum usb_request_type_t
 #define LAUNCH_LOGITECH_BOOTLOADER     0xFE
 #define LAUNCH_NORDIC_BOOTLOADER       0xFF
 
+#define LEAVE_TONE_TEST_MODE           0x57

@@ -31,6 +31,11 @@ common.radio.set_channel(common.channels[0])
 common.radio.enter_tone_test_mode()
 
 # Run indefinitely
-while True:
+try:
+  while True:
+    time.sleep(0.1)
+except KeyboardInterrupt:
   pass
-
+finally:
+  common.radio.leave_tone_test_mode()
+  common.radio.dongle.reset()
