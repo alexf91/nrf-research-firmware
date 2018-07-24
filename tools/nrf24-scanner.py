@@ -43,26 +43,30 @@ common.radio.set_channel(common.channels[0])
 # Sweep through the channels and decode ESB packets in pseudo-promiscuous mode
 last_tune = time.time()
 channel_index = 0
-while True:
+try:
+  while True:
 
-  # Increment the channel
-  if len(common.channels) > 1 and time.time() - last_tune > dwell_time:
-    channel_index = (channel_index + 1) % (len(common.channels))
-    common.radio.set_channel(common.channels[channel_index])
-    last_tune = time.time()
+    # Increment the channel
+    if len(common.channels) > 1 and time.time() - last_tune > dwell_time:
+      channel_index = (channel_index + 1) % (len(common.channels))
+      common.radio.set_channel(common.channels[channel_index])
+      last_tune = time.time()
 
-  # Receive payloads
-  value = common.radio.receive_payload()
-  if len(value) >= 5:
+    # Receive payloads
+    value = common.radio.receive_payload()
+    if len(value) >= 5:
 
-    # Split the address and payload
-    address, payload = value[0:5], value[5:]
+      # Split the address and payload
+      address, payload = value[0:5], value[5:]
 
-    # Log the packet
-    logging.info('{0: >2}  {1: >2}  {2}  {3}'.format(
-              common.channels[channel_index],
-              len(payload),
-              ':'.join('{:02X}'.format(b) for b in address),
-              ':'.join('{:02X}'.format(b) for b in payload)))
+      # Log the packet
+      logging.info('{0: >2}  {1: >2}  {2}  {3}'.format(
+                common.channels[channel_index],
+                len(payload),
+                ':'.join('{:02X}'.format(b) for b in address),
+                ':'.join('{:02X}'.format(b) for b in payload)))
 
-
+except KeyboardInterrupt:
+  pass
+finally:
+  common.radio.dongle.reset()

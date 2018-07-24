@@ -52,48 +52,53 @@ retries = max(0, min(common.args.retries, 15))
 # Sweep through the channels and decode ESB packets in pseudo-promiscuous mode
 last_ping = time.time()
 channel_index = 0
-while True:
+try:
+  while True:
 
-  # Follow the target device if it changes channels
-  if time.time() - last_ping > timeout:
+    # Follow the target device if it changes channels
+    if time.time() - last_ping > timeout:
 
-    # First try pinging on the active channel
-    if not common.radio.transmit_payload(ping_payload, ack_timeout, retries):
+      # First try pinging on the active channel
+      if not common.radio.transmit_payload(ping_payload, ack_timeout, retries):
 
-      # Ping failed on the active channel, so sweep through all available channels
-      success = False
-      for channel_index in range(len(common.channels)):
-        common.radio.set_channel(common.channels[channel_index])
-        if common.radio.transmit_payload(ping_payload, ack_timeout, retries):
+        # Ping failed on the active channel, so sweep through all available channels
+        success = False
+        for channel_index in range(len(common.channels)):
+          common.radio.set_channel(common.channels[channel_index])
+          if common.radio.transmit_payload(ping_payload, ack_timeout, retries):
 
-          # Ping successful, exit out of the ping sweep
-          last_ping = time.time()
-          logging.debug('Ping success on channel {0}'.format(common.channels[channel_index]))
-          success = True
-          break
+            # Ping successful, exit out of the ping sweep
+            last_ping = time.time()
+            logging.debug('Ping success on channel {0}'.format(common.channels[channel_index]))
+            success = True
+            break
 
-      # Ping sweep failed
-      if not success: logging.debug('Unable to ping {0}'.format(address_string))
+        # Ping sweep failed
+        if not success: logging.debug('Unable to ping {0}'.format(address_string))
 
-    # Ping succeeded on the active channel
-    else:
-      logging.debug('Ping success on channel {0}'.format(common.channels[channel_index]))
+      # Ping succeeded on the active channel
+      else:
+        logging.debug('Ping success on channel {0}'.format(common.channels[channel_index]))
+        last_ping = time.time()
+
+    # Receive payloads
+    value = common.radio.receive_payload()
+    if value[0] == 0:
+
+      # Reset the channel timer
       last_ping = time.time()
 
-  # Receive payloads
-  value = common.radio.receive_payload()
-  if value[0] == 0:
+      # Split the payload from the status byte
+      payload = value[1:]
 
-    # Reset the channel timer
-    last_ping = time.time()
+      # Log the packet
+      logging.info('{0: >2}  {1: >2}  {2}  {3}'.format(
+                common.channels[channel_index],
+                len(payload),
+                address_string,
+                ':'.join('{:02X}'.format(b) for b in payload)))
 
-    # Split the payload from the status byte
-    payload = value[1:]
-
-    # Log the packet
-    logging.info('{0: >2}  {1: >2}  {2}  {3}'.format(
-              common.channels[channel_index],
-              len(payload),
-              address_string,
-              ':'.join('{:02X}'.format(b) for b in payload)))
-
+except KeyboardInterrupt:
+  pass
+finally:
+  common.radio.dongle.reset()
